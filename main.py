@@ -45,8 +45,8 @@ async def lifespan(app: FastAPI):
         # Ensure SQLite backward compatibility for username column if needed
         try:
             await conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(100);"))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Column check notice: {e}")
     logger.info("Database initialized")
 
     # Auto-sync admin user configured in .env
