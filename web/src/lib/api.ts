@@ -118,6 +118,14 @@ export async function apiFetch<T>(
 
         if (!res.ok) {
             const body = await res.json().catch(() => null);
+            if (res.status === 401 && !endpoint.includes("/api/auth/login")) {
+                try {
+                    localStorage.removeItem("app-auth");
+                    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+                        window.location.href = "/login";
+                    }
+                } catch {}
+            }
             throw new ApiError(res.status, res.statusText, body);
         }
 
@@ -191,6 +199,8 @@ export const systemApi = {
     getStreamUrl: (id: string, initialLines = 30, scope?: ServiceScope) => {
         const query = new URLSearchParams({ initial_lines: String(initialLines) });
         if (scope) query.set("scope", scope);
+        const token = getToken();
+        if (token) query.set("token", token);
         return `${API_BASE}/api/services/${id}/logs/stream?${query.toString()}`;
     },
     getFile: (id: string, scope?: ServiceScope) =>

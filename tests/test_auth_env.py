@@ -67,3 +67,24 @@ async def test_env_admin_sync_and_login():
         )
         assert email_login.status_code == 200
         assert "token" in email_login.json()
+
+        # 6. Verify unauthenticated requests to protected endpoints return 401
+        unauth_services = await ac.get("/api/services")
+        assert unauth_services.status_code == 401
+
+        unauth_system = await ac.get("/api/system/overview")
+        assert unauth_system.status_code == 401
+
+        # 7. Verify authenticated requests to protected endpoints return 200
+        auth_services = await ac.get(
+            "/api/services",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert auth_services.status_code == 200
+
+        auth_system = await ac.get(
+            "/api/system/overview",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert auth_system.status_code == 200
+

@@ -1,99 +1,121 @@
 """
-Authentication — JWT token creation/verification + password hashing.
-
-Uses bcrypt directly for passwords and PyJWT for tokens.
-No business logic — pure utility functions + FastAPI dependency.
+Core — Authentication & User Database operations.
+Accesses the database (UserRepository) using schema data contracts.
+Blind to services, providers, and routers.
 """
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime, timedelta, timezone
-
-import bcrypt
-import jwt
-from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import Settings
-from src.helpers import ValidationError, PermissionDeniedError, time_now
-from src.db import get_session, UserRepository, User
+from src.db import UserRepository, User, get_session
+from src.schema.auth import UserProfileResponse
 
 
-async def hash_password(password: str) -> str:
-    """Hash a plaintext password with bcrypt asynchronously."""
-    return await asyncio.to_thread(
-        lambda: bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    )
-
-
-async def verify_password(password: str, hashed: str) -> bool:
-    """Compare plaintext against stored bcrypt hash asynchronously."""
-    return await asyncio.to_thread(
-        lambda: bcrypt.checkpw(password.encode(), hashed.encode())
-    )
-
-
-def create_token(user_id: str) -> str:
-    """Create a JWT token for a given user_id."""
-    payload = {
-        "sub": user_id,
-        "exp": time_now() + timedelta(hours=Settings.JWT_EXPIRY_HOURS),
-        "iat": time_now(),
-    }
-    return jwt.encode(payload, Settings.JWT_SECRET, algorithm="HS256")
-
-
-def decode_token(token: str) -> str:
-    """Decode JWT and return user_id. Raises on invalid/expired."""
-    try:
-        payload = jwt.decode(token, Settings.JWT_SECRET, algorithms=["HS256"])
-        user_id: str | None = payload.get("sub")
-        if not user_id:
-            raise ValidationError("Invalid token: missing subject")
-        return user_id
-    except jwt.ExpiredSignatureError:
-        raise PermissionDeniedError("Token expired")
-    except jwt.InvalidTokenError:
-        raise PermissionDeniedError("Invalid token")
-
-
-async def get_current_user(
-    authorization: str = Header(None),
-    session: AsyncSession = Depends(get_session),
-) -> User:
-    """
-    FastAPI dependency — extracts user from Authorization header.
-    Usage: user: User = Depends(get_current_user)
-    """
-    if not authorization or not authorization.startswith("Bearer "):
-        raise PermissionDeniedError("Missing or invalid Authorization header")
-
-    token = authorization[7:]  # strip "Bearer "
-    user_id = decode_token(token)
-
+async def get_user_by_id(user_id: str, session: AsyncSession) -> User | None:
+    """Retrieve user by primary key ID."""
     repo = UserRepository(session)
-    user = await repo.get(user_id)
-    if not user:
-        raise PermissionDeniedError("User not found")
+    return await repo.get(user_id)
+
+
+async def get_user_by_identifier(identifier: str, session: AsyncSession) -> User | None:
+    """Retrieve user by username or email."""
+    repo = UserRepository(session)
+    return await repo.find_by_identifier(identifier)
+
+
+async def get_user_by_email(email: str, session: AsyncSession) -> User | None:
+    """Retrieve user by email."""
+    repo = UserRepository(session)
+    return await repo.find_by_email(email)
+
+
+async def get_user_by_username(username: str, session: AsyncSession) -> User | None:
+    """Retrieve user by username."""
+    repo = UserRepository(session)
+    return await repo.find_by_username(username)
+
+
+async def create_user(
+    email: str,
+    name: str,
+    password_hash: str,
+    session: AsyncSession,
+    username: str | None = None,
+    tier: str = "registered",
+    user_id: str | None = None,
+) -> User:
+    """Persist a new user into the database."""
+    repo = UserRepository(session)
+    user = await repo.create_user(
+        email=email,
+        name=name,
+        password_hash=password_hash,
+        username=username,
+        tier=tier,
+        user_id=user_id,
+    )
+    await session.commit()
+    await session.refresh(user)
     return user
 
 
-async def get_optional_user(
-    authorization: str | None = Header(None),
-    session: AsyncSession = Depends(get_session),
-) -> User | None:
+async def sync_env_admin_record(
+    session: AsyncSession,
+    admin_user: str,
+    admin_email: str,
+    admin_name: str,
+    password_hash: str,
+) -> User:
     """
-    FastAPI dependency — returns User if token provided, None otherwise.
-    For endpoints that work both anonymously and authenticated.
+    Ensure admin record in database is synchronized with .env credentials.
     """
-    if not authorization or not authorization.startswith("Bearer "):
-        return None
+    repo = UserRepository(session)
+    user = await repo.find_by_identifier(admin_user)
+    if not user:
+        user = await repo.find_by_email(admin_email)
 
-    try:
-        token = authorization[7:]
-        user_id = decode_token(token)
-        repo = UserRepository(session)
-        return await repo.get(user_id)
-    except Exception:
-        return None
+    if not user:
+        user = await repo.create_user(
+            email=admin_email,
+            name=admin_name,
+            password_hash=password_hash,
+            username=admin_user,
+            tier="admin",
+            user_id="admin",
+        )
+        await session.commit()
+        await session.refresh(user)
+    else:
+        needs_commit = False
+        if user.password_hash != password_hash:
+            user.password_hash = password_hash
+            needs_commit = True
+        if user.name != admin_name:
+            user.name = admin_name
+            needs_commit = True
+        if user.tier != "admin":
+            user.tier = "admin"
+            needs_commit = True
+        if user.username != admin_user:
+            user.username = admin_user
+            needs_commit = True
+
+        if needs_commit:
+            await session.commit()
+            await session.refresh(user)
+
+    return user
+
+
+def to_user_profile(user: User) -> UserProfileResponse:
+    """Map ORM User model to UserProfileResponse schema."""
+    return UserProfileResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        username=user.username,
+        tier=user.tier,
+        created_at=user.created_at,
+    )

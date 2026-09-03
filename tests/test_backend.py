@@ -41,6 +41,17 @@ async def test_journal_structured_parsing():
         assert hasattr(entry, "message")
 
 
+async def _get_auth_headers():
+    from src.config import Settings
+    from src.helpers import init_db, session_scope
+    from src.services.auth import sync_env_admin, create_token
+    init_db(Settings.DATABASE_URL)
+    async with session_scope() as session:
+        user = await sync_env_admin(session)
+        token = create_token(user.id)
+        return {"Authorization": f"Bearer {token}"}
+
+
 @pytest.mark.asyncio
 async def test_api_health():
     transport = ASGITransport(app=app)
@@ -54,8 +65,14 @@ async def test_api_health():
 @pytest.mark.asyncio
 async def test_api_system_overview():
     transport = ASGITransport(app=app)
+    headers = await _get_auth_headers()
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        response = await ac.get("/api/system/overview")
+        # Unauthenticated request should be rejected
+        unauth = await ac.get("/api/system/overview")
+        assert unauth.status_code == 401
+
+        # Authenticated request
+        response = await ac.get("/api/system/overview", headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert "hostname" in data
@@ -67,8 +84,14 @@ async def test_api_system_overview():
 @pytest.mark.asyncio
 async def test_api_services_list():
     transport = ASGITransport(app=app)
+    headers = await _get_auth_headers()
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        response = await ac.get("/api/services")
+        # Unauthenticated request should be rejected
+        unauth = await ac.get("/api/services")
+        assert unauth.status_code == 401
+
+        # Authenticated request
+        response = await ac.get("/api/services", headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -82,9 +105,14 @@ async def test_api_services_list():
 @pytest.mark.asyncio
 async def test_api_service_logs():
     transport = ASGITransport(app=app)
+    headers = await _get_auth_headers()
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        # Check logs endpoint for omniroute.service
-        response = await ac.get("/api/services/omniroute.service/logs?lines=3")
+        # Unauthenticated request should be rejected
+        unauth = await ac.get("/api/services/omniroute.service/logs?lines=3")
+        assert unauth.status_code == 401
+
+        # Authenticated request
+        response = await ac.get("/api/services/omniroute.service/logs?lines=3", headers=headers)
         assert response.status_code == 200
         logs = response.json()
         assert isinstance(logs, list)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AppShell } from "@/components/layout/app-shell";
+import { useAuth } from "@/hooks/use-auth";
 import { systemApi, sudoApi, setSessionSudoPassword, clearSessionSudoPassword } from "@/lib/api";
 import type {
     SystemOverview,
@@ -12,6 +13,8 @@ import type {
 } from "@/types/system";
 
 export default function Dashboard() {
+    const { isAuthenticated } = useAuth();
+
     // Telemetry & Services State
     const [overview, setOverview] = useState<SystemOverview | null>(null);
     const [services, setServices] = useState<ServiceStatus[]>([]);
@@ -70,8 +73,9 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        if (!isAuthenticated) return;
         sudoApi.getStatus().then(setSudoStatus).catch(() => null);
-    }, []);
+    }, [isAuthenticated]);
 
     const executePrivilegedOperation = async (operation: () => Promise<void>) => {
         try {
@@ -184,6 +188,7 @@ export default function Dashboard() {
 
     // 1. Fetch Overview & Services
     const refreshData = useCallback(async () => {
+        if (!isAuthenticated) return;
         try {
             const [overviewData, servicesData] = await Promise.all([
                 systemApi.getOverview(),
@@ -207,19 +212,21 @@ export default function Dashboard() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isAuthenticated]);
 
     // Initial load and periodic polling (every 5 seconds)
     useEffect(() => {
+        if (!isAuthenticated) return;
         refreshData();
         const interval = setInterval(() => {
             refreshData();
         }, 5000);
         return () => clearInterval(interval);
-    }, [refreshData]);
+    }, [isAuthenticated, refreshData]);
 
     // 2. Fetch Historical Logs when selected service changes
     const fetchLogs = useCallback(async (service: ServiceStatus) => {
+        if (!isAuthenticated) return;
         setLogsLoading(true);
         try {
             const entries = await systemApi.getLogs(service.id, {
@@ -234,7 +241,7 @@ export default function Dashboard() {
         } finally {
             setLogsLoading(false);
         }
-    }, [logPriority, logGrep]);
+    }, [isAuthenticated, logPriority, logGrep]);
 
     useEffect(() => {
         if (selectedService && !liveStreaming) {
@@ -244,7 +251,7 @@ export default function Dashboard() {
 
     // 3. Real-Time SSE Log Streaming
     useEffect(() => {
-        if (!selectedService || !liveStreaming) {
+        if (!isAuthenticated || !selectedService || !liveStreaming) {
             if (eventSourceRef.current) {
                 eventSourceRef.current.close();
                 eventSourceRef.current = null;

@@ -3,9 +3,13 @@ from fastapi import APIRouter, Depends, Query, Path
 from starlette.responses import StreamingResponse
 
 from src.schema import StructuredLogEntry, ServiceScope, LogQueryFilter
-from src.services import LogManager
+from src.services import LogManager, get_current_user
 
-router = APIRouter(prefix="/api/services", tags=["Logs"])
+router = APIRouter(
+    prefix="/api/services",
+    tags=["Logs"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 def get_log_manager() -> LogManager:

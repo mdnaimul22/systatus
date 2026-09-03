@@ -10,9 +10,13 @@ from src.schema import (
     ServiceFileUpdateRequest,
     ServiceFileOperationResponse
 )
-from src.services import ServiceManager
+from src.services import ServiceManager, get_current_user
 
-router = APIRouter(prefix="/api/services", tags=["Services"])
+router = APIRouter(
+    prefix="/api/services",
+    tags=["Services"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 def get_service_manager() -> ServiceManager:

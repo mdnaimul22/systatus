@@ -113,12 +113,19 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
             const body = isRegister ? { email, name, password } : { username: email, password };
             const res = await api.post<TokenResponse>(endpoint, body);
 
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8686";
             const profile = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+                `${apiBase}/api/auth/me`,
                 { headers: { Authorization: `Bearer ${res.token}` } },
-            ).then((r) => r.json());
+            ).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
-            setAuth(res.token, profile);
+            setAuth(res.token, profile || {
+                id: res.user_id,
+                email: res.email,
+                name: res.name,
+                username: res.username,
+                tier: "admin",
+            });
             addToast(isRegister ? "Account created!" : `Welcome back, ${res.name || "Admin"}!`, "success");
             onSuccess();
         } catch (err) {
