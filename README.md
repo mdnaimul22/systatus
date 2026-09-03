@@ -1,8 +1,8 @@
-# SysStatus ⚡
+# systatus ⚡
 
-> Systemd service manager & live telemetry dashboard with structured journalctl streaming.
+> Modern full-stack systemd service manager & live telemetry dashboard with structured journalctl streaming.
 
-SysStatus provides a unified dashboard to monitor, manage, edit, and stream logs for custom Linux services (both **User** and **System** scopes) without touching the command line.
+**systatus** provides a unified dashboard to monitor, manage, edit, and stream logs for custom Linux services (both **User** and **System** scopes) without touching the command line.
 
 ---
 
@@ -37,32 +37,38 @@ flowchart LR
 - **Python** >= 3.10
 - **Node.js** >= 18 and `npm`
 
-### 2. Installation
+---
 
-Clone the repository and install backend dependencies:
+### 2. One-Command Quick Setup ⚡
+
+Clone the repository and run the setup script:
 ```bash
 git clone https://github.com/mdnaimul22/systatus.git
 cd systatus
 
-# Backend dependencies
+chmod +x setup.sh && ./setup.sh
+```
+
+The script automatically:
+1. Verifies Python 3.10+ and Node.js/npm
+2. Generates `.env` from `.env.example`
+3. Installs backend Python dependencies
+4. Installs frontend Next.js packages in `web/`
+
+<details>
+<summary><b>Or Manual Installation (Click to expand)</b></summary>
+
+```bash
+# 1. Backend dependencies
 pip install -r requirements.txt
 
-# Frontend dependencies
+# 2. Frontend dependencies
 cd web && npm install && cd ..
-```
 
-### 3. Configuration
-Copy `.env.example` to `.env`:
-```bash
+# 3. Environment configuration
 cp .env.example .env
 ```
-Default settings:
-```env
-APP_ENV=development
-API_HOST=127.0.0.1
-API_PORT=8686
-FRONTEND_URL=http://localhost:3000
-```
+</details>
 
 ---
 
