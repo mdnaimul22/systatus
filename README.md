@@ -5,19 +5,18 @@
 
 ---
 
-**systatus** provides a unified dashboard to monitor, manage, edit, and stream logs for custom Linux services (both **User** and **System** scopes) without touching the command line.
+## 📖 About
+
+**systatus** is a lightweight, modern web dashboard designed to simplify Linux system administration. It allows developers and sysadmins to monitor host telemetry, manage custom systemd services (`systemctl`), edit unit configuration files, and stream live journal logs (`journalctl`) in real time through a fast, clean, and theme-adaptive web interface.
 
 ---
 
 ## ✨ Features
 
-- **Unified Full-Stack Runner:** Single command `python main.py` orchestrates both the FastAPI backend and Next.js frontend concurrently based on `APP_ENV` (`development` or `production`).
 - **Dual-Scope Service Management:** Auto-detects custom systemd services across both System (`/etc/systemd/system/`) and User (`~/.config/systemd/user/`) scopes.
 - **Full Lifecycle Operations:** Start, stop, restart, enable, disable, and reset failed units (even crash-looping services).
 - **In-Browser Unit File Editor:** View, edit, validate, and safely save `.service` unit files with automatic daemon reloads.
 - **Live Journalctl Log Stream:** Real-time, color-coded SSE (Server-Sent Events) live tail with severity priority filtering (`INFO`, `WARNING`, `ERROR`, etc.) and log search.
-- **Smart Sudo Elevation:** Auto-detects passwordless sudo (`NOPASSWD`) and provides an on-demand modal password prompt for standard users.
-- **Bulletproof Port Management:** Multi-strategy socket cleaner (`fuser`, `ss`, `pkill -P`) preventing `EADDRINUSE` errors on restarts.
 
 ---
 

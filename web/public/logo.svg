@@ -9,20 +9,24 @@
       <stop offset="50%" stop-color="#34d399"/>
       <stop offset="100%" stop-color="#06b6d4"/>
     </linearGradient>
-    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f8fafc"/>
-      <stop offset="100%" stop-color="#cbd5e1"/>
-    </linearGradient>
     <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feGaussianBlur stdDeviation="2" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
+    <style>
+      .brand-text { fill: #0f172a; }
+      .brand-tagline { fill: #059669; }
+      @media (prefers-color-scheme: dark) {
+        .brand-text { fill: #f8fafc; }
+        .brand-tagline { fill: #34d399; }
+      }
+    </style>
   </defs>
 
   <!-- Left Icon Mark -->
   <g transform="translate(4, 4)">
-    <rect width="56" height="56" rx="14" fill="url(#logoBg)" stroke="#1e293b" stroke-width="2"/>
-    <rect x="2" y="2" width="52" height="52" rx="12" fill="none" stroke="#10b981" stroke-width="1.2" stroke-opacity="0.3"/>
+    <rect width="56" height="56" rx="14" fill="url(#logoBg)" stroke="#334155" stroke-width="1.5"/>
+    <rect x="2" y="2" width="52" height="52" rx="12" fill="none" stroke="#10b981" stroke-width="1" stroke-opacity="0.4"/>
     
     <!-- Heartbeat waveform -->
     <path d="M12 28h6l4-10 6 20 5-13 4 5 2-2h7" 
@@ -42,9 +46,8 @@
     <text font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
           font-size="28" 
           font-weight="800" 
-          letter-spacing="-0.03em" 
-          fill="url(#textGrad)">
-      systatus
+          letter-spacing="-0.03em">
+      <tspan fill="#10b981" font-weight="900">s</tspan><tspan class="brand-text">ystatus</tspan>
     </text>
   </g>
 
@@ -52,10 +55,9 @@
   <g transform="translate(76, 52)">
     <text font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
           font-size="9" 
-          font-weight="600" 
+          font-weight="700" 
           letter-spacing="0.16em" 
-          fill="#10b981" 
-          opacity="0.9">
+          class="brand-tagline">
       DAEMON &amp; TELEMETRY
     </text>
   </g>
