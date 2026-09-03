@@ -1,6 +1,14 @@
 @import "tailwindcss" source(none);
 @source "..";
 
+@theme {
+    --color-popover: var(--color-card);
+    --color-popover-foreground: var(--color-text);
+    --color-card: var(--color-card);
+    --color-card-foreground: var(--color-text);
+    --color-border: var(--color-border);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS — Spacing, Typography, Radius
    ═══════════════════════════════════════════════════════════════ */
@@ -465,9 +473,9 @@
 [data-theme="custom"] {
     color-scheme: dark;
 
-    --color-primary: #1E293B;
-    --color-primary-dark: #192232;
-    --color-primary-light: rgba(30, 41, 59, 0.12);
+    --color-primary: #10B981;
+    --color-primary-dark: #059669;
+    --color-primary-light: rgba(16, 185, 129, 0.15);
     --color-primary-foreground: #ffffff;
 
     --color-success: #16a34a;
