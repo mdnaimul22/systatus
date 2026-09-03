@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, AliasChoices
 from src.helpers import ValidationError
 
 
@@ -14,6 +14,7 @@ class RegisterRequest(BaseModel):
     email: str
     name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=6, max_length=128)
+    username: str | None = Field(default=None, max_length=100)
 
     @field_validator("email")
     @classmethod
@@ -25,13 +26,24 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    username: str = Field(
+        validation_alias=AliasChoices("username", "email", "identifier"),
+        min_length=1,
+        max_length=255,
+    )
+    password: str = Field(min_length=1)
 
-    @field_validator("email")
+    @field_validator("username")
     @classmethod
-    def validate_email(cls, v: str) -> str:
-        return v.strip().lower()
+    def validate_username(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValidationError("Username or email cannot be empty")
+        return v
+
+    @property
+    def email(self) -> str:
+        return self.username
 
 
 class TokenResponse(BaseModel):
@@ -39,10 +51,13 @@ class TokenResponse(BaseModel):
     user_id: str
     name: str
     email: str
+    username: str | None = None
 
 
 class UserProfileResponse(BaseModel):
     id: str
     email: str
     name: str
+    username: str | None = None
+    tier: str = "registered"
     created_at: datetime

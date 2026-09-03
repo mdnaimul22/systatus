@@ -13,12 +13,14 @@ from src.helpers import (
     register_error_handlers,
     init_db,
     shutdown_db,
+    session_scope,
     kill_pid,
     connection,
     generate_nginx_config,
     start_frontend,
     stop_frontend
 )
+from sqlalchemy import text
 from src.db.models import Base
 from src.routers import (
     auth_router,
@@ -40,7 +42,20 @@ async def lifespan(app: FastAPI):
     init_db(Settings.DATABASE_URL)
     async with connection._engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Ensure SQLite backward compatibility for username column if needed
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(100);"))
+        except Exception:
+            pass
     logger.info("Database initialized")
+
+    # Auto-sync admin user configured in .env
+    try:
+        async with session_scope() as session:
+            from src.services.auth import sync_env_admin
+            await sync_env_admin(session)
+    except Exception as e:
+        logger.warning(f"Could not auto-sync .env admin user: {e}")
     
     # Auto-generate Nginx configuration dynamically on boot
     if generate_nginx_config():

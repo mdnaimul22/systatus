@@ -10,6 +10,7 @@ interface TokenResponse {
     token: string;
     user_id: string;
     name: string;
+    username?: string;
     email: string;
 }
 
@@ -39,7 +40,7 @@ export function LoginForm() {
             const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
             const body = isRegister
                 ? { email, name, password }
-                : { email, password };
+                : { username: email, password };
 
             const res = await api.post<TokenResponse>(endpoint, body);
 
@@ -50,7 +51,7 @@ export function LoginForm() {
             ).then((r) => r.json());
 
             setAuth(res.token, profile);
-            addToast(isRegister ? "Account created!" : "Welcome back!", "success");
+            addToast(isRegister ? "Account created!" : `Welcome back, ${res.name || "Admin"}!`, "success");
             router.push("/");
         } catch (err) {
             if (isRegister && err instanceof ApiError && err.status === 409) {
@@ -60,7 +61,7 @@ export function LoginForm() {
                     setError(null);
                 }, 2000);
             } else if (!isRegister && err instanceof ApiError && (err.status === 401 || err.status === 400)) {
-                setError("Incorrect email or password.");
+                setError("Incorrect username or password.");
                 setPassword(""); // Clear password field for quick retry
                 document.getElementById("password-input")?.focus();
             } else {
@@ -107,14 +108,14 @@ export function LoginForm() {
 
                 <div>
                     <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">
-                        Email
+                        {isRegister ? "Email" : "Username or Email"}
                     </label>
                     <input
-                        type="email"
+                        type={isRegister ? "email" : "text"}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        placeholder="you@example.com"
+                        placeholder={isRegister ? "you@example.com" : "admin or you@example.com"}
                         className="w-full h-11 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-input)] text-[var(--color-text)] text-sm placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--ring-color)] outline-none transition-colors"
                     />
                 </div>
@@ -137,7 +138,7 @@ export function LoginForm() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
                             aria-label={showPassword ? "Hide password" : "Show password"}
                         >
                             {showPassword ? (
@@ -189,6 +190,14 @@ export function LoginForm() {
                     {isRegister ? "Sign in" : "Sign up"}
                 </button>
             </p>
+
+            {!isRegister && (
+                <div className="text-center pt-2 border-t border-[var(--color-border)]/60">
+                    <p className="text-[11px] text-[var(--color-text-muted)]">
+                        Admin credentials configured via <code className="px-1 py-0.5 rounded bg-[var(--color-input)] text-[10px] font-mono border border-[var(--color-border)]">.env</code> (default: <span className="font-mono text-[var(--color-text-secondary)] font-medium">admin / admin</span>)
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

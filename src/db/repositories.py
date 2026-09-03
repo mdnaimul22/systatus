@@ -4,7 +4,7 @@ User Repository — extends BaseRepository with auth-specific queries.
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.helpers import BaseRepository
@@ -17,14 +17,46 @@ class UserRepository(BaseRepository[User]):
 
     async def find_by_email(self, email: str) -> User | None:
         """Lookup user by email (case-insensitive)."""
-        stmt = select(self.model).where(self.model.email == email.lower())
+        stmt = select(self.model).where(func.lower(self.model.email) == email.lower().strip())
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def create_user(self, email: str, name: str, password_hash: str) -> User:
-        """Create a new user with pre-hashed password."""
-        return await self.create(
-            email=email.lower().strip(),
-            name=name.strip(),
-            password_hash=password_hash,
+    async def find_by_username(self, username: str) -> User | None:
+        """Lookup user by username (case-insensitive)."""
+        stmt = select(self.model).where(func.lower(self.model.username) == username.lower().strip())
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def find_by_identifier(self, identifier: str) -> User | None:
+        """Lookup user by username or email (case-insensitive)."""
+        clean = identifier.lower().strip()
+        stmt = select(self.model).where(
+            or_(
+                func.lower(self.model.email) == clean,
+                func.lower(self.model.username) == clean,
+            )
         )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def create_user(
+        self,
+        email: str,
+        name: str,
+        password_hash: str,
+        username: str | None = None,
+        tier: str = "registered",
+        user_id: str | None = None,
+    ) -> User:
+        """Create a new user with pre-hashed password and optional username/tier."""
+        kwargs = {
+            "email": email.lower().strip(),
+            "name": name.strip(),
+            "password_hash": password_hash,
+            "tier": tier,
+        }
+        if username:
+            kwargs["username"] = username.lower().strip()
+        if user_id:
+            kwargs["id"] = user_id
+        return await self.create(**kwargs)

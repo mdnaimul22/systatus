@@ -178,8 +178,13 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
                     </div>
                     {!collapsed && (
                         <div className="flex flex-col items-start min-w-0 flex-1">
-                            <span className="text-sm font-medium truncate w-full text-left">
+                            <span className="text-sm font-medium truncate w-full text-left flex items-center gap-1.5">
                                 {isAuthenticated ? userName : "Guest"}
+                                {isAuthenticated && user?.tier === "admin" && (
+                                    <span className="text-[9px] uppercase font-bold px-1 py-0.2 rounded bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+                                        Admin
+                                    </span>
+                                )}
                             </span>
                             <span className="text-xs text-[var(--color-text-muted)] truncate w-full text-left">
                                 {isAuthenticated ? "Settings & Profile" : "Login to save data"}
@@ -194,8 +199,15 @@ export function UserMenu({ collapsed = false }: UserMenuProps) {
                     className="w-68 z-[100] bg-[var(--color-card)] border border-[var(--color-border)] shadow-2xl backdrop-blur-xl"
                 >
                     {isAuthenticated ? (
-                        <div className="px-2 py-1.5 flex flex-col">
-                            <span className="text-sm font-medium text-[var(--color-text)] truncate">{userName}</span>
+                        <div className="px-2 py-1.5 flex flex-col gap-0.5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-semibold text-[var(--color-text)] truncate">{userName}</span>
+                                {user?.tier === "admin" && (
+                                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/30">
+                                        Admin
+                                    </span>
+                                )}
+                            </div>
                             <span className="text-xs text-[var(--color-text-muted)] truncate">{userEmail}</span>
                         </div>
                     ) : (

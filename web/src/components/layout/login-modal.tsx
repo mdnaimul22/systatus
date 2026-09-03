@@ -87,6 +87,7 @@ interface TokenResponse {
     token: string;
     user_id: string;
     name: string;
+    username?: string;
     email: string;
 }
 
@@ -109,7 +110,7 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
 
         try {
             const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
-            const body = isRegister ? { email, name, password } : { email, password };
+            const body = isRegister ? { email, name, password } : { username: email, password };
             const res = await api.post<TokenResponse>(endpoint, body);
 
             const profile = await fetch(
@@ -118,7 +119,7 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
             ).then((r) => r.json());
 
             setAuth(res.token, profile);
-            addToast(isRegister ? "Account created!" : "Welcome back!", "success");
+            addToast(isRegister ? "Account created!" : `Welcome back, ${res.name || "Admin"}!`, "success");
             onSuccess();
         } catch (err) {
             if (isRegister && err instanceof ApiError && err.status === 409) {
@@ -128,7 +129,7 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
                     setError(null);
                 }, 2000);
             } else if (!isRegister && err instanceof ApiError && (err.status === 401 || err.status === 400)) {
-                setError("Incorrect email or password.");
+                setError("Incorrect username or password.");
                 setPassword(""); // Clear password field
                 document.getElementById("modal-password-input")?.focus();
             } else {
@@ -147,7 +148,7 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
                     {isRegister ? "Create Account" : "Welcome Back"}
                 </h2>
                 <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                    {isRegister ? "Create an account to get started." : "Sign in to your workspace."}
+                    {isRegister ? "Create an account to get started." : "Sign in with your configured credentials."}
                 </p>
             </div>
 
@@ -166,12 +167,14 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
             )}
 
             <div>
-                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">
+                    {isRegister ? "Email" : "Username or Email"}
+                </label>
                 <input
-                    type="email"
+                    type={isRegister ? "email" : "text"}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={isRegister ? "you@example.com" : "admin or you@example.com"}
                     required
                     className="w-full h-10 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-input)] text-[var(--color-text)] text-sm placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] outline-none transition-colors"
                 />
@@ -192,7 +195,7 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors cursor-pointer"
                         aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                         {showPassword ? (
@@ -234,6 +237,14 @@ function InlineAuthForm({ defaultMode, onSuccess }: { defaultMode: "login" | "re
                     {isRegister ? "Sign in" : "Sign up"}
                 </button>
             </p>
+
+            {!isRegister && (
+                <div className="text-center pt-2 border-t border-[var(--color-border)]/60">
+                    <p className="text-[11px] text-[var(--color-text-muted)]">
+                        Admin credentials configured via <code className="px-1 py-0.5 rounded bg-[var(--color-input)] text-[10px] font-mono border border-[var(--color-border)]">.env</code> (default: <span className="font-mono text-[var(--color-text-secondary)] font-medium">admin / admin</span>)
+                    </p>
+                </div>
+            )}
         </form>
     );
 }

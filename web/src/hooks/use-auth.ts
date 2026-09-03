@@ -9,6 +9,8 @@ interface User {
     id: string;
     email: string;
     name: string;
+    username?: string;
+    tier?: string;
     created_at: string;
 }
 

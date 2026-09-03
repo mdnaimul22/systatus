@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(default="sqlite+aiosqlite:///./data/app.db", validation_alias="DATABASE_URL")
 
     # --- Auth ---
+    AUTH_USERNAME: str = Field(default="admin", validation_alias="AUTH_USERNAME")
+    AUTH_PASSWORD: str = Field(default="admin", validation_alias="AUTH_PASSWORD")
+    AUTH_NAME: str = Field(default="Admin", validation_alias="AUTH_NAME")
+    AUTH_EMAIL: str = Field(default="admin@systatus.local", validation_alias="AUTH_EMAIL")
     JWT_SECRET: str = Field(default="super-secret-key-change-me", validation_alias="JWT_SECRET")
     JWT_EXPIRY_HOURS: int = Field(default=168, validation_alias="JWT_EXPIRY_HOURS")
 

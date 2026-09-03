@@ -26,7 +26,13 @@ _login_limiter = RateLimiter(max_calls=5, window_seconds=60)
 async def register(body: RegisterRequest, request: Request, session: AsyncSession = Depends(get_session)):
     """Create a new user account."""
     _register_limiter.check(request)
-    result = await auth_service.register(body.email, body.name, body.password, session)
+    result = await auth_service.register(
+        email=body.email,
+        name=body.name,
+        password=body.password,
+        session=session,
+        username=body.username,
+    )
     return result
 
 
@@ -34,7 +40,7 @@ async def register(body: RegisterRequest, request: Request, session: AsyncSessio
 async def login(body: LoginRequest, request: Request, session: AsyncSession = Depends(get_session)):
     """Authenticate and get JWT token."""
     _login_limiter.check(request)
-    result = await auth_service.login(body.email, body.password, session)
+    result = await auth_service.login(body.username, body.password, session)
     return result
 
 
@@ -47,6 +53,8 @@ async def me(
         id=user.id,
         email=user.email,
         name=user.name,
+        username=user.username,
+        tier=user.tier,
         created_at=user.created_at,
     )
 
