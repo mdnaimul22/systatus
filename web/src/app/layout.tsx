@@ -48,10 +48,18 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
     title: {
-        default: "Dashboard",
-        template: "%s | App",
+        default: "systatus — System Service & Telemetry Manager",
+        template: "%s | systatus",
     },
-    description: "Application Dashboard",
+    description: "Real-time systemd service controller, live journalctl logs, and hardware telemetry dashboard.",
+    icons: {
+        icon: [
+            { url: "/favicon.svg", type: "image/svg+xml" },
+            { url: "/icon.svg", type: "image/svg+xml" },
+        ],
+        shortcut: "/favicon.svg",
+        apple: "/icon.svg",
+    },
 };
 
 /**

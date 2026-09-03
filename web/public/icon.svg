@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1329"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="iconPulse" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="iconGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Server/Chassis Rounded Container -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#iconBg)" stroke="#1e293b" stroke-width="3"/>
+  <rect x="12" y="12" width="104" height="104" rx="24" fill="none" stroke="#10b981" stroke-width="2" stroke-opacity="0.25"/>
+
+  <!-- Subtle Circuit Dots -->
+  <circle cx="28" cy="28" r="2.5" fill="#334155"/>
+  <circle cx="100" cy="28" r="2.5" fill="#334155"/>
+  <circle cx="28" cy="100" r="2.5" fill="#334155"/>
+  <circle cx="100" cy="100" r="2.5" fill="#334155"/>
+
+  <!-- Live Telemetry Heartbeat Wave -->
+  <path d="M26 64h15l8-22 13 44 11-28 8 11 4-5h17" 
+        stroke="url(#iconPulse)" 
+        stroke-width="7" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        filter="url(#iconGlow)"/>
+
+  <!-- Status Indicator Node -->
+  <circle cx="102" cy="64" r="5.5" fill="#34d399" filter="url(#iconGlow)"/>
+  <circle cx="102" cy="64" r="2.5" fill="#ffffff"/>
+</svg>

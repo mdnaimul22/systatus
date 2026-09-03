@@ -143,11 +143,17 @@ export function Sidebar() {
             >
                 {/* Header */}
                 <div className="flex items-center h-14 px-3 border-b border-[var(--color-border)]">
-                    {!isCollapsed && (
-                        <span className="text-base font-bold text-[var(--color-text)] truncate pl-1 flex-1 flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            SysStatus
-                        </span>
+                    {!isCollapsed ? (
+                        <div className="flex items-center gap-2.5 truncate pl-1 flex-1">
+                            <img src="/favicon.svg" alt="systatus" className="w-6 h-6 shrink-0" />
+                            <span className="text-base font-bold text-[var(--color-text)] tracking-tight">
+                                systatus
+                            </span>
+                        </div>
+                    ) : (
+                        <div className="hidden lg:flex items-center justify-center w-full py-1">
+                            <img src="/favicon.svg" alt="systatus" className="w-6 h-6 shrink-0" />
+                        </div>
                     )}
                     <button
                         onClick={toggleCollapse}

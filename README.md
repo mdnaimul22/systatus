@@ -1,6 +1,9 @@
-# systatus ⚡
+<div align="center">
+  <img src="web/public/logo.svg" alt="systatus logo" width="360" />
+  <p><strong>Modern full-stack systemd service manager &amp; live telemetry dashboard with structured journalctl streaming.</strong></p>
+</div>
 
-> Modern full-stack systemd service manager & live telemetry dashboard with structured journalctl streaming.
+---
 
 **systatus** provides a unified dashboard to monitor, manage, edit, and stream logs for custom Linux services (both **User** and **System** scopes) without touching the command line.
 
